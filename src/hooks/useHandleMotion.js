@@ -11,12 +11,24 @@ export function useHandleMotion(handleUpper, handleLower, options = {}) {
 
 	useFrame(({ clock }) => {
 		const t = clock.elapsedTime;
+		const twitch = Math.sin(t * frequency) * amplitude;
 
-		if (mode === "idle") {
-			const twitch = Math.sin(t * frequency) * amplitude;
+		if (handleUpper) {
+			handleUpper.rotation.z = baseUpper + twitch;
+			handleUpper.rotation.z = MathUtils.clamp(
+				handleUpper.rotation.z,
+				MathUtils.degToRad(-75),
+				MathUtils.degToRad(75)
+			);
+		}
 
-			if (handleUpper) handleUpper.rotation.z = baseUpper + twitch;
-			if (handleLower) handleLower.rotation.z = baseLower - twitch;
+		if (handleLower) {
+			handleLower.rotation.z = baseLower - twitch;
+			handleLower.rotation.z = MathUtils.clamp(
+				handleLower.rotation.z,
+				MathUtils.degToRad(-75),
+				MathUtils.degToRad(75)
+			);
 		}
 
 		// Future modes: blink, react, squint, etc.

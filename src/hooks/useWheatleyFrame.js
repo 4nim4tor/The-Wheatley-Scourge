@@ -28,6 +28,7 @@ export function useWheatleyFrame({
 				);
 				ref.current.rotation.y +=
 					(targetSphereYaw - ref.current.rotation.y) * 0.05;
+				if (!ref.current) return;
 			}
 		}
 
