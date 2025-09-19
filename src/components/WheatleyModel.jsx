@@ -1,5 +1,6 @@
 import { useGLTF } from "@react-three/drei";
-import { useRef, useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
+import { useEffect, useRef, useMemo } from "react";
 import { useBlinkAnimation } from "../hooks/useBlinkAnimation";
 import { useIdleGaze } from "../hooks/useIdleGaze";
 import { useWheatleyFrame } from "../hooks/useWheatleyFrame";
@@ -30,10 +31,52 @@ export default function WheatleyModel(props) {
 	);
 
 	const ref = useRef();
-	const targetGaze = useIdleGaze();
+
+	const idleGaze = useIdleGaze();
 	const blinkProgress = useBlinkAnimation();
 
-	useWheatleyFrame({ eye, lidTop, lidBottom, ref, targetGaze, blinkProgress });
+	const targetGaze = useRef({ x: 0, y: 0 });
+	const trackingActive = useRef(false);
+
+	useEffect(() => {
+		function handleProximity(e) {
+			const { dx, dy, distance } = e.detail;
+			if (distance < 250) {
+				trackingActive.current = true;
+				const factor = Math.min(1, 250 / distance);
+				targetGaze.current.x = dx * 0.002 * factor;
+				targetGaze.current.y = -dy * 0.002 * factor;
+			} else {
+				trackingActive.current = false;
+			}
+		}
+		document.addEventListener("wheatley-proximity", handleProximity);
+		return () =>
+			document.removeEventListener("wheatley-proximity", handleProximity);
+	}, []);
+
+	const blendedGaze = useRef({ x: 0, y: 0 });
+
+	useFrame(() => {
+		if (trackingActive.current) {
+			blendedGaze.current.x +=
+				(targetGaze.current.x - blendedGaze.current.x) * 0.1;
+			blendedGaze.current.y +=
+				(targetGaze.current.y - blendedGaze.current.y) * 0.1;
+		} else {
+			blendedGaze.current.x = idleGaze.x;
+			blendedGaze.current.y = idleGaze.y;
+		}
+	});
+
+	useWheatleyFrame({
+		eye,
+		lidTop,
+		lidBottom,
+		ref,
+		targetGaze: blendedGaze.current,
+		blinkProgress,
+	});
 
 	useHandleMotion(handleUpper, handleLower, {
 		frequency: 2.5,

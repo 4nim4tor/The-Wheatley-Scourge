@@ -10,7 +10,7 @@ export function useWheatleyFrame({
 	blinkProgress,
 }) {
 	useFrame(() => {
-		if (eye) {
+		if (eye && targetGaze) {
 			eye.rotation.x += (targetGaze.y - eye.rotation.x) * 0.2;
 			eye.rotation.y += (targetGaze.x - eye.rotation.y) * 0.2;
 		}

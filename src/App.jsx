@@ -1,8 +1,13 @@
 import WheatleyScene from "./components/WheatleyScene";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { initWheatleySensors } from "./engine/wheatleySensors";
 import "./App.css";
 
 function App() {
+	useEffect(() => {
+		initWheatleySensors(); // <-- sets up all the listeners once
+	}, []);
+
 	return (
 		<>
 			<h1>The Wheatley Scourge</h1>
